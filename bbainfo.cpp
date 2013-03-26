@@ -11,7 +11,6 @@
 #define LAYER_2                 2
 #define LAYER_3                 1
 
-
 double frequency [4] = {44.1, 48, 32, 0};
 unsigned int slots [4] = {12, 144, 0, 0};
 unsigned int bitrate_index [3][16] =
@@ -25,13 +24,13 @@ unsigned int syncwords;
 int col, layer, protection, crc_check, bit_rate, freq, padding_bit;
 int private_bit, mode, mode_ext, copyright, original, emphasis;
 
-void zprintf(int level, char *tmpStr, int value)
+void zprintf(int level, const char *tmpStr, int value)
 {
   if (level <= verbose_level)
     printf(tmpStr, value);
 }
 
-unsigned int nextbits(int i)
+unsigned long nextbits(int i)
 {
   return look_ahead(i);
 }

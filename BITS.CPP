@@ -8,10 +8,17 @@
 static unsigned char bfr[BUFFER_SIZE];
 static int byteidx;
 static int bitidx;
-static int bufcount;
+static size_t bufcount;
 static double totbits;
 FILE *bitfile;
 bool eobs;
+
+
+void strlwr (char *s)
+{
+    char *c=s;
+    for (;(*c=tolower(*c));c++) ;
+}
 
 /* return total number of generated bits */
 double bitcount()
@@ -21,7 +28,7 @@ double bitcount()
 
 static bool refill_buffer()
 {
-  int i;
+  size_t i;
 
   i = fread(bfr, sizeof(unsigned char), BUFFER_SIZE, bitfile);
   if (i <= 0)
@@ -165,14 +172,14 @@ int seek_sync(unsigned int sync, int N)
 }
 
 /*look ahead for the next N bits from the bit stream */
-unsigned int look_ahead(int N)
+unsigned long look_ahead(int N)
 {
   unsigned long val = 0;
   unsigned char *tmp_bfr = bfr;
   unsigned char tmp_bfr1[4];
   int j = N;
   int eo_bs = eobs;
-  int buf_count = bufcount;
+  size_t buf_count = bufcount;
   int bit_idx = bitidx;
   int byte_idx = byteidx;
 

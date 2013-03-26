@@ -47,13 +47,13 @@ int scalable_mode, mb_row, mb_width, previous_macroblock_address;
 int mb_column, macroblock_address, decoding_order, group_order;
 int slice_vertical_position, slice_vertical_position_extension;
 
-void zprintf(int level, char *tmpStr, int value)
+void zprintf(int level, const char *tmpStr, int value)
 {
   if (level <= verbose_level)
     printf(tmpStr, value);
 }
 
-unsigned int nextbits(int i)
+unsigned long nextbits(int i)
 {
   return look_ahead(i);
 }

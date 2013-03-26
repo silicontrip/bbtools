@@ -44,7 +44,7 @@ static FILE *outfp;
 static char outname[256];
 static bool vob_flag;
 
-static void transport_stream(char *fname, int argc, int PID_to_get);
+static void transport_stream(char *fname, int argc, unsigned long PID_to_get);
 
 void write_buffer()
 {
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
   unsigned long program_packet_sequence_counter_flag, PSTD_buffer_flag;
   unsigned long PES_extension_flag_2, PES_extension_field_length;
   unsigned long bytes_used, encrypted;
-  int substream_to_get, stream_to_get, stream_id, substream_id;
+  unsigned long substream_to_get, stream_to_get, stream_id, substream_id;
   bool firsttime = true;
   unsigned long stream_packets[256], stream_bytes[256], pack_packets;
   unsigned long system_packets, mpeg_type;
@@ -156,10 +156,10 @@ int main(int argc, char* argv[])
 
   if (argc > 2)
   {
-    sscanf(argv[2], "0x%x", &i);
+    sscanf(argv[2], "0x%lx", &i);
     if (mpeg_type == 1)
     {
-      if (i < 0 || i > 0xFF)
+      if (i > 0xFF)
       {
         printf("Stream ID must be in the range 0..0xFF\n");
         exit (1);
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      if (i < 0 || i > 0x1FFF)
+      if (i > 0x1FFF)
       {
         printf("PID must be in the range 0..0x1FFF\n");
         exit (1);
@@ -192,8 +192,8 @@ int main(int argc, char* argv[])
 
     if (argc > 4)
     {
-      sscanf(argv[4], "0x%x", &i);
-      if (i < 0 || i > 0xFF)
+      sscanf(argv[4], "0x%lx", &i);
+      if (i > 0xFF)
       {
         printf("Substream ID must be in the range 0..0xFF\n");
         exit (1);
@@ -213,12 +213,12 @@ int main(int argc, char* argv[])
     if (mpeg_type == 1)
     {
       if ((vob_flag) && (stream_to_get == PRIVATE_STREAM_1) && (substream_to_get > -1))
-        printf("Saving stream 0x%02X, substream 0x%02X into file %s...\n", stream_to_get, substream_to_get, argv[3]);
+        printf("Saving stream 0x%02lX, substream 0x%02lX into file %s...\n", stream_to_get, substream_to_get, argv[3]);
       else
-        printf("Saving stream 0x%02X into file %s...\n", stream_to_get, argv[3]);
+        printf("Saving stream 0x%02lX into file %s...\n", stream_to_get, argv[3]);
     }
     else
-      printf("Saving PID stream 0x%04X into file %s...\n", stream_to_get, argv[3]);
+      printf("Saving PID stream 0x%04lX into file %s...\n", stream_to_get, argv[3]);
   }
 
   if (mpeg_type == 2)
@@ -584,58 +584,59 @@ int main(int argc, char* argv[])
             switch (stream_id)
             {
               case PROGRAM_STREAM_MAP:
-                printf("Found stream id 0x%02X  = Program Stream Map\n", stream_id);
+                printf("Found stream id 0x%02lX  = Program Stream Map\n", stream_id);
                 break;
               case PRIVATE_STREAM_1:
                 if (vob_flag)
                 {
                   if ((substream_id >= SUBSTREAM_AC3_0) && (substream_id <= SUBSTREAM_AC3_8))
-                    printf("Found stream id 0x%02X  = Private Stream 1, substream 0x%02X, AC3 Audio stream %u\n", stream_id,  substream_id, substream_id - SUBSTREAM_AC3_0);
+                    printf("Found stream id 0x%02lX  = Private Stream 1, substream 0x%02lX, AC3 Audio stream %lu\n", stream_id,
+                           substream_id, substream_id - SUBSTREAM_AC3_0);
                   else
                     if ((substream_id >= SUBSTREAM_DTS_0) && (substream_id <= SUBSTREAM_DTS_8))
-                      printf("Found stream id 0x%02X  = Private Stream 1, substream 0x%02X, DTS Audio stream %u\n", stream_id, substream_id, substream_id - SUBSTREAM_DTS_0);
+                      printf("Found stream id 0x%02lX  = Private Stream 1, substream 0x%02lX, DTS Audio stream %lu\n", stream_id, substream_id, substream_id - SUBSTREAM_DTS_0);
                     else
                       if ((substream_id >= SUBSTREAM_PCM_0) && (substream_id <= SUBSTREAM_PCM_F))
-                        printf("Found stream id 0x%02X  = Private Stream 1, substream 0x%02X, PCM Audio stream %u\n", stream_id, substream_id, substream_id - SUBSTREAM_PCM_0);
+                        printf("Found stream id 0x%02lX  = Private Stream 1, substream 0x%02lX, PCM Audio stream %lu\n", stream_id, substream_id, substream_id - SUBSTREAM_PCM_0);
                       else
                         if ((substream_id >= SUBSTREAM_SUBPIC_0) && (substream_id <= SUBSTREAM_SUBPIC_1F))
-                          printf("Found stream id 0x%02X  = Private Stream 1, substream 0x%02X, Subpicture stream %u\n", stream_id, substream_id, substream_id - SUBSTREAM_SUBPIC_0);
+                          printf("Found stream id 0x%02lX  = Private Stream 1, substream 0x%02lX, Subpicture stream %lu\n", stream_id, substream_id, substream_id - SUBSTREAM_SUBPIC_0);
                         else
-                          printf("Found stream id 0x%02X  = Private Stream 1, substream 0x%02X\n", stream_id, substream_id);
+                          printf("Found stream id 0x%02lX  = Private Stream 1, substream 0x%02lX\n", stream_id, substream_id);
                   substreams_found[substream_id] = true;
                 }
                 else
-                  printf("Found stream id 0x%02X  = Private Stream 1\n", stream_id);
+                  printf("Found stream id 0x%02lX  = Private Stream 1\n", stream_id);
                 break;
               case PRIVATE_STREAM_2:
-                printf("Found stream id 0x%02X  = Private Stream 2\n", stream_id);
+                printf("Found stream id 0x%02lX  = Private Stream 2\n", stream_id);
                 break;
               case ECM_STREAM:
-                printf("Found stream id 0x%02X  = ECM Stream\n", stream_id);
+                printf("Found stream id 0x%02lX  = ECM Stream\n", stream_id);
                 break;
               case EMM_STREAM:
-                printf("Found stream id 0x%02X  = EMM Stream\n", stream_id);
+                printf("Found stream id 0x%02lX  = EMM Stream\n", stream_id);
                 break;
               case PROGRAM_STREAM_DIRECTORY:
-                printf("Found stream id 0x%02X  = Program Stream Directory\n", stream_id);
+                printf("Found stream id 0x%02lX  = Program Stream Directory\n", stream_id);
                 break;
               case DSMCC_STREAM:
-                printf("Found stream id 0x%02X  = DSMCC Stream\n", stream_id);
+                printf("Found stream id 0x%02lX  = DSMCC Stream\n", stream_id);
                 break;
               case ITUTRECH222TYPEE_STREAM:
-                printf("Found stream id 0x%02X  = ITU-T Rec. H.222.1 type E\n", stream_id);
+                printf("Found stream id 0x%02lX  = ITU-T Rec. H.222.1 type E\n", stream_id);
                 break;
               case PADDING_STREAM:
-                printf("Found stream id 0x%02X  = Padding Stream\n", stream_id);
+                printf("Found stream id 0x%02lX  = Padding Stream\n", stream_id);
                 break;
               default:
                 if ((stream_id >= 0xE0) && (stream_id <= 0xEF))
-                  printf("Found stream id 0x%02X  = Video Stream %d\n", stream_id, stream_id - 0xE0);
+                  printf("Found stream id 0x%02lX  = Video Stream %ld\n", stream_id, stream_id - 0xE0);
                 else
                   if ((stream_id >= 0xC0) && (stream_id <= 0xDF))
-                    printf("Found stream id 0x%02X  = MPEG Audio Stream %d\n", stream_id, stream_id - 0xC0);
+                    printf("Found stream id 0x%02lX  = MPEG Audio Stream %ld\n", stream_id, stream_id - 0xC0);
                   else
-                    printf("Found stream id 0x%02X  = other stream\n", stream_id);
+                    printf("Found stream id 0x%02lX  = other stream\n", stream_id);
             }
             streams_found[stream_id] = true;
           }
@@ -645,7 +646,7 @@ int main(int argc, char* argv[])
             {
               if (!substream_encrypted[substream_id])
               {
-                printf("Stream id 0x%02X, substream 0x%02X is encrypted\n", stream_id, substream_id);
+                printf("Stream id 0x%02lX, substream 0x%02lX is encrypted\n", stream_id, substream_id);
                 substream_encrypted[substream_id] = true;
               }
             }
@@ -656,7 +657,7 @@ int main(int argc, char* argv[])
             {
               if (!stream_encrypted[stream_id])
               {
-                printf("Stream id 0x%02X is encrypted\n", stream_id);
+                printf("Stream id 0x%02lX is encrypted\n", stream_id);
                 stream_encrypted[stream_id] = true;
               }
             }
@@ -666,9 +667,9 @@ int main(int argc, char* argv[])
   } while ((i != MPEG_PROGRAM_END_CODE) && (!end_bs()));
 
   printf("\nSummary:\n");
-  printf("\nMPEG Packs = %d\n", pack_packets);
+  printf("\nMPEG Packs = %ld\n", pack_packets);
   if (system_packets)
-    printf("System headers = %d\n", system_packets);
+    printf("System headers = %ld\n", system_packets);
   for (i = 0; i < 256; i++)
   {
     if (stream_packets[i])
@@ -676,10 +677,10 @@ int main(int argc, char* argv[])
       switch (i)
       {
         case PROGRAM_STREAM_MAP:
-          printf("Program Stream Map packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("Program Stream Map packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case PRIVATE_STREAM_1:
-          printf("Private Stream 1 packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("Private Stream 1 packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           if (vob_flag)
           {
             for (j = 0; j < 256; j++)
@@ -687,51 +688,51 @@ int main(int argc, char* argv[])
               if (substream_packets[j])
               {
                 if ((j >= SUBSTREAM_AC3_0) && (j <= SUBSTREAM_AC3_8))
-                  printf("    AC3 Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_AC3_0, substream_packets[j], ac3_bytes[j - SUBSTREAM_AC3_0]);
+                  printf("    AC3 Audio stream %lu packets = %lu, total bytes = %lu\n", j - SUBSTREAM_AC3_0, substream_packets[j], ac3_bytes[j - SUBSTREAM_AC3_0]);
                 else
                   if ((j >= SUBSTREAM_DTS_0) && (j <= SUBSTREAM_DTS_8))
-                    printf("    DTS Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_DTS_0, substream_packets[j], dts_bytes[j - SUBSTREAM_DTS_0]);
+                    printf("    DTS Audio stream %lu packets = %lu, total bytes = %lu\n", j - SUBSTREAM_DTS_0, substream_packets[j], dts_bytes[j - SUBSTREAM_DTS_0]);
                   else
                     if ((j >= SUBSTREAM_PCM_0) && (j <= SUBSTREAM_PCM_F))
-                      printf("    PCM Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_PCM_0, substream_packets[j], pcm_bytes[j - SUBSTREAM_PCM_0]);
+                      printf("    PCM Audio stream %lu packets = %lu, total bytes = %lu\n", j - SUBSTREAM_PCM_0, substream_packets[j], pcm_bytes[j - SUBSTREAM_PCM_0]);
                     else
                       if ((j >= SUBSTREAM_SUBPIC_0) && (j <= SUBSTREAM_SUBPIC_1F))
-                        printf("    Subpicture stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_SUBPIC_0, substream_packets[j], subpic_bytes[j - SUBSTREAM_SUBPIC_0]);
+                        printf("    Subpicture stream %lu packets = %lu, total bytes = %lu\n", j - SUBSTREAM_SUBPIC_0, substream_packets[j], subpic_bytes[j - SUBSTREAM_SUBPIC_0]);
                       else
-                        printf("    Substream 0x%02X packets = %u, total bytes = %u\n", j, substream_packets[j], substream_bytes[j]);
+                        printf("    Substream 0x%02lX packets = %lu, total bytes = %lu\n", j, substream_packets[j], substream_bytes[j]);
               }
             }
           }
           break;
         case PRIVATE_STREAM_2:
-          printf("Private Stream 2 packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("Private Stream 2 packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case ECM_STREAM:
-          printf("ECM Stream packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("ECM Stream packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case EMM_STREAM:
-          printf("EMM Stream packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("EMM Stream packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case PROGRAM_STREAM_DIRECTORY:
-          printf("Program Stream Directory packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("Program Stream Directory packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case DSMCC_STREAM:
-          printf("DSMCC Stream packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("DSMCC Stream packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case ITUTRECH222TYPEE_STREAM:
-          printf("ITU-T Rec. H.222.1 type E packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("ITU-T Rec. H.222.1 type E packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         case PADDING_STREAM:
-          printf("Padding Stream packets = %u, total bytes = %u\n", stream_packets[i], stream_bytes[i]);
+          printf("Padding Stream packets = %lu, total bytes = %lu\n", stream_packets[i], stream_bytes[i]);
           break;
         default:
           if ((i >= 0xE0) && (i <= 0xEF))
-            printf("Video stream %d packets = %u, total bytes = %u\n", i - 0xE0, stream_packets[i], stream_bytes[i]);
+            printf("Video stream %ld packets = %lu, total bytes = %lu\n", i - 0xE0, stream_packets[i], stream_bytes[i]);
           else
             if ((i >= 0xC0) && (i <= 0xDF))
-              printf("MPEG Audio stream %d packets = %u, total bytes = %u\n", i - 0xC0, stream_packets[i], stream_bytes[i]);
+              printf("MPEG Audio stream %ld packets = %lu, total bytes = %lu\n", i - 0xC0, stream_packets[i], stream_bytes[i]);
             else
-              printf("Other stream 0x%02X packets = %u, total bytes = %u\n", i, stream_packets[i], stream_bytes[i]);
+              printf("Other stream 0x%02lX packets = %lu, total bytes = %lu\n", i, stream_packets[i], stream_bytes[i]);
       }
     }
   }
@@ -758,7 +759,7 @@ struct stream_entry {
 };
 
 
-void transport_stream(char *fname, int argc, int PID_to_get)
+void transport_stream(char *fname, int argc, unsigned long PID_to_get)
 {
   unsigned long i, j, k, PES_packet_length, PES_header_data_length;
   unsigned long adaptation_bytes;
@@ -965,55 +966,55 @@ void transport_stream(char *fname, int argc, int PID_to_get)
           switch (streams[PID]->stream_id)
           {
             case PROGRAM_STREAM_MAP:
-              printf("Found PID 0x%04X, stream id 0x%02X = Program Stream Map\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = Program Stream Map\n", PID, streams[PID]->stream_id);
               break;
             case PRIVATE_STREAM_1:
               if (vob_flag)
               {
                 if ((streams[PID]->substream_id >= SUBSTREAM_AC3_0) && (streams[PID]->substream_id <= SUBSTREAM_AC3_8))
-                  printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1, substream 0x%02X, AC3 Audio stream %u\n", PID, streams[PID]->stream_id,  streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_AC3_0);
+                  printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1, substream 0x%02lX, AC3 Audio stream %lu\n", PID, streams[PID]->stream_id,  streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_AC3_0);
                 else
                   if ((streams[PID]->substream_id >= SUBSTREAM_DTS_0) && (streams[PID]->substream_id <= SUBSTREAM_DTS_8))
-                    printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1, substream 0x%02X, DTS Audio stream %u\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_DTS_0);
+                    printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1, substream 0x%02lX, DTS Audio stream %lu\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_DTS_0);
                   else
                     if ((streams[PID]->substream_id >= SUBSTREAM_PCM_0) && (streams[PID]->substream_id <= SUBSTREAM_PCM_F))
-                      printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1, substream 0x%02X, PCM Audio stream %u\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_PCM_0);
+                      printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1, substream 0x%02lX, PCM Audio stream %lu\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_PCM_0);
                     else
                       if ((streams[PID]->substream_id >= SUBSTREAM_SUBPIC_0) && (streams[PID]->substream_id <= SUBSTREAM_SUBPIC_1F))
-                        printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1, substream 0x%02X, Subpicture stream %u\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_SUBPIC_0);
+                        printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1, substream 0x%02lX, Subpicture stream %lu\n", PID, streams[PID]->stream_id, streams[PID]->substream_id, streams[PID]->substream_id - SUBSTREAM_SUBPIC_0);
                       else
-                        printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1, substream 0x%02X\n", PID, streams[PID]->stream_id, streams[PID]->substream_id);
+                        printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1, substream 0x%02lX\n", PID, streams[PID]->stream_id, streams[PID]->substream_id);
               }
               else
-                printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 1\n", PID, streams[PID]->stream_id);
+                printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 1\n", PID, streams[PID]->stream_id);
               break;
             case PRIVATE_STREAM_2:
-              printf("Found PID 0x%04X, stream id 0x%02X = Private Stream 2\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = Private Stream 2\n", PID, streams[PID]->stream_id);
               break;
             case ECM_STREAM:
-              printf("Found PID 0x%04X, stream id 0x%02X = ECM Stream\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = ECM Stream\n", PID, streams[PID]->stream_id);
               break;
             case EMM_STREAM:
-              printf("Found PID 0x%04X, stream id 0x%02X = EMM Stream\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = EMM Stream\n", PID, streams[PID]->stream_id);
               break;
             case PROGRAM_STREAM_DIRECTORY:
-              printf("Found PID 0x%04X, stream id 0x%02X = Program Stream Directory\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = Program Stream Directory\n", PID, streams[PID]->stream_id);
               break;
             case DSMCC_STREAM:
-              printf("Found PID 0x%04X, stream id 0x%02X = DSMCC Stream\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = DSMCC Stream\n", PID, streams[PID]->stream_id);
               break;
             case ITUTRECH222TYPEE_STREAM:
-              printf("Found PID 0x%04X, stream id 0x%02X = ITU-T Rec. H.222.1 type E\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = ITU-T Rec. H.222.1 type E\n", PID, streams[PID]->stream_id);
               break;
             case PADDING_STREAM:
-              printf("Found PID 0x%04X, stream id 0x%02X = Padding Stream\n", PID, streams[PID]->stream_id);
+              printf("Found PID 0x%04X, stream id 0x%02lX = Padding Stream\n", PID, streams[PID]->stream_id);
               break;
             default:
               if ((streams[PID]->stream_id >= 0xE0) && (streams[PID]->stream_id <= 0xEF))
-                printf("Found PID 0x%04X, stream id 0x%02X = Video Stream %d\n", PID, streams[PID]->stream_id, streams[PID]->stream_id - 0xE0);
+                printf("Found PID 0x%04X, stream id 0x%02lX = Video Stream %ld\n", PID, streams[PID]->stream_id, streams[PID]->stream_id - 0xE0);
               else
                 if ((streams[PID]->stream_id >= 0xC0) && (streams[PID]->stream_id <= 0xDF))
-                  printf("Found PID 0x%04X, stream id 0x%02X = MPEG Audio Stream %d\n", PID, streams[PID]->stream_id, streams[PID]->stream_id - 0xC0);
+                  printf("Found PID 0x%04X, stream id 0x%02lX = MPEG Audio Stream %ld\n", PID, streams[PID]->stream_id, streams[PID]->stream_id - 0xC0);
                 else
                 {
                   if (!streams[PID]->stream_id)
@@ -1035,7 +1036,7 @@ void transport_stream(char *fname, int argc, int PID_to_get)
                     }
                   }
                   else
-                    printf("Found PID 0x%04X, stream id 0x%02X = other stream\n", PID, streams[PID]->stream_id);
+                    printf("Found PID 0x%04X, stream id 0x%02lX = other stream\n", PID, streams[PID]->stream_id);
                 }
           }
           streams[PID]->stream_found = 1;
@@ -1043,12 +1044,12 @@ void transport_stream(char *fname, int argc, int PID_to_get)
           if ((streams[PID]->stream_id == PRIVATE_STREAM_1) && (vob_flag))
           {
             if (streams[PID]->stream_encrypted)
-              printf("PID 0x%04X, Stream id 0x%02X, substream 0x%02X is encrypted\n", PID, streams[PID]->stream_id, streams[PID]->substream_id);
+              printf("PID 0x%04X, Stream id 0x%02lX, substream 0x%02lX is encrypted\n", PID, streams[PID]->stream_id, streams[PID]->substream_id);
           }
           else
           {
             if (streams[PID]->stream_encrypted)
-              printf("PID 0x%04X, Stream id 0x%02X is encrypted\n", PID, streams[PID]->stream_id);
+              printf("PID 0x%04X, Stream id 0x%02lX is encrypted\n", PID, streams[PID]->stream_id);
           }
         }
       }
@@ -1056,7 +1057,7 @@ void transport_stream(char *fname, int argc, int PID_to_get)
   } while (!end_bs());
 
   printf("\nSummary:\n");
-  printf("\nMPEG Transport Packets = %d\n", transport_packets);
+  printf("\nMPEG Transport Packets = %ld\n", transport_packets);
   for (i = 0; i < 8192; i++)
   {
     if (streams[i] != NULL)
@@ -1066,77 +1067,77 @@ void transport_stream(char *fname, int argc, int PID_to_get)
         switch (streams[i]->stream_id)
         {
           case PROGRAM_STREAM_MAP:
-            printf("PID 0x%04X, Program Stream Map packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04lX, Program Stream Map packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case PRIVATE_STREAM_1:
-            printf("PID 0x%04X, Private Stream 1 packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04lX, Private Stream 1 packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
             if (vob_flag)
             {
               j = streams[i]->substream_id;
               if ((j >= SUBSTREAM_AC3_0) && (j <= SUBSTREAM_AC3_8))
-                printf("    AC3 Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_AC3_0, streams[i]->stream_packets, streams[i]->ac3_bytes);
+                printf("    AC3 Audio stream %lu packets = %lu, total bytes = %u\n", j - SUBSTREAM_AC3_0, streams[i]->stream_packets, streams[i]->ac3_bytes);
               else
                 if ((j >= SUBSTREAM_DTS_0) && (j <= SUBSTREAM_DTS_8))
-                  printf("    DTS Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_DTS_0, streams[i]->stream_packets, streams[i]->dts_bytes);
+                  printf("    DTS Audio stream %lu packets = %lu, total bytes = %u\n", j - SUBSTREAM_DTS_0, streams[i]->stream_packets, streams[i]->dts_bytes);
                 else
                   if ((j >= SUBSTREAM_PCM_0) && (j <= SUBSTREAM_PCM_F))
-                    printf("    PCM Audio stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_PCM_0, streams[i]->stream_packets, streams[i]->pcm_bytes);
+                    printf("    PCM Audio stream %lu packets = %lu, total bytes = %u\n", j - SUBSTREAM_PCM_0, streams[i]->stream_packets, streams[i]->pcm_bytes);
                   else
                     if ((j >= SUBSTREAM_SUBPIC_0) && (j <= SUBSTREAM_SUBPIC_1F))
-                      printf("    Subpicture stream %u packets = %u, total bytes = %u\n", j - SUBSTREAM_SUBPIC_0, streams[i]->stream_packets, streams[i]->subpic_bytes);
+                      printf("    Subpicture stream %lu packets = %lu, total bytes = %u\n", j - SUBSTREAM_SUBPIC_0, streams[i]->stream_packets, streams[i]->subpic_bytes);
                     else
-                      printf("    Substream 0x%02X packets = %u, total bytes = %u\n", j, streams[i]->stream_packets, streams[i]->stream_bytes);
+                      printf("    Substream 0x%02lX packets = %lu, total bytes = %lu\n", j, streams[i]->stream_packets, streams[i]->stream_bytes);
             }
             break;
           case PRIVATE_STREAM_2:
-            printf("PID 0x%04X, Private Stream 2 packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, Private Stream 2 packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case ECM_STREAM:
-            printf("PID 0x%04X, ECM Stream packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, ECM Stream packets =%luu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case EMM_STREAM:
-            printf("PID 0x%04X, EMM Stream packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, EMM Stream packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case PROGRAM_STREAM_DIRECTORY:
-            printf("PID 0x%04X, Program Stream Directory packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, Program Stream Directory packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case DSMCC_STREAM:
-            printf("PID 0x%04X, DSMCC Stream packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, DSMCC Stream packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case ITUTRECH222TYPEE_STREAM:
-            printf("PID 0x%04X, ITU-T Rec. H.222.1 type E packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, ITU-T Rec. H.222.1 type E packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           case PADDING_STREAM:
-            printf("PID 0x%04X, Padding Stream packets = %u, total bytes = %u\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
+            printf("PID 0x%04X, Padding Stream packets = %lu, total bytes = %lu\n", PID, streams[i]->stream_packets, streams[i]->stream_bytes);
             break;
           default:
             j = streams[i]->stream_id;
             if ((j >= 0xE0) && (j <= 0xEF))
-              printf("PID 0x%04X, Video stream %d packets = %u, total bytes = %u\n", i, j - 0xE0, streams[i]->stream_packets, streams[i]->stream_bytes);
+              printf("PID 0x%04lX, Video stream %ld packets = %lu, total bytes = %lu\n", i, j - 0xE0, streams[i]->stream_packets, streams[i]->stream_bytes);
             else
               if ((j >= 0xC0) && (j <= 0xDF))
-                printf("PID 0x%04X, MPEG Audio stream %d packets = %u, total bytes = %u\n", i, j - 0xC0, streams[i]->stream_packets, streams[i]->stream_bytes);
+                printf("PID 0x%04lX, MPEG Audio stream %ld packets = %lu, total bytes = %lu\n", i, j - 0xC0, streams[i]->stream_packets, streams[i]->stream_bytes);
               else
                 if (!j)
                 {
                   switch (i)
                   {
                     case PROGRAM_ASSOCIATION_TABLE:
-                      printf("PID 0x%04X, Program Association Table packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+                      printf("PID 0x%04lX, Program Association Table packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
                       break;
                     case CONDITIONAL_ACCESS_TABLE:
-                      printf("PID 0x%04X, Conditional Access Table packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+                      printf("PID 0x%04lX, Conditional Access Table packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
                       break;
                     case NULL_PACKET:
-                      printf("PID 0x%04X, Null packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+                      printf("PID 0x%04lX, Null packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
                       break;
                     default:
-                      printf("PID 0x%04X, Other packets = %u, total bytes = %u\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
+                      printf("PID 0x%04lX, Other packets = %lu, total bytes = %lu\n", i, streams[i]->stream_packets, streams[i]->stream_bytes);
                       break;
                   }
                 }
                 else
-                  printf("PID %04X, Other stream 0x%02X packets = %u, total bytes = %u\n", i, j, streams[i]->stream_packets, streams[i]->stream_bytes);
+                  printf("PID %04lX, Other stream 0x%02lX packets = %lu, total bytes = %lu\n", i, j, streams[i]->stream_packets, streams[i]->stream_bytes);
         }
       }
       free(streams[i]);
