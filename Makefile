@@ -6,16 +6,16 @@ TARGET=bbinfo bbainfo bbdmux bbvinfo
 
 all: $(TARGET)
 
-bbinfo: BBINFO.o BITS.o
+bbinfo: bbinfo.o bits.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-bbainfo: bbainfo.o BITS.o
+bbainfo: bbainfo.o bits.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-bbdmux: bbdmux.o BITS.o
+bbdmux: bbdmux.o bits.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-bbvinfo: bbvinfo.o BITS.o
+bbvinfo: bbvinfo.o bits.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 
